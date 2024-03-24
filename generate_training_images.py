@@ -11,7 +11,7 @@ model = YOLO('yolov8m-pose.pt')
 
 i = 0 
 
-files = glob.glob("rawImages/*.*")
+files = sorted(glob.glob("rawImages/*.*"))
 
 
 for filename in files:
@@ -26,7 +26,7 @@ for filename in files:
 
         cropped = image[y1:y2, x1:x2]
 
-        name = f"{i:04d}" + filename + ".jpg"
+        name = f"{i:04d}" + filename.strip("rawImages/").split(".")[0] + ".jpg"
 
         # Display the annotated frame
         while True: 
