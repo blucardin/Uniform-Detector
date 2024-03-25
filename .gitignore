@@ -2,7 +2,7 @@
 *.heif
 *.HEIC
 *.jpg
-
+.DS_Store
 *.jpg
 *.jpeg
 *.png
