@@ -10,8 +10,10 @@ print(keras.__version__)
 # Load the YOLOv8 model
 model = YOLO('yolov8m-pose.pt')
 
-uniformModel = keras.saving.load_model("2024-03-25-19-39-20.keras")
-softmax_layer = keras.layers.Softmax()
+uniformModel = keras.saving.load_model("2024-04-01-15-24-20.keras")
+
+probability_model = keras.Sequential([uniformModel, 
+                                         keras.layers.Softmax()])
 
 uniformModel.summary()
 
@@ -51,9 +53,9 @@ while cap.isOpened():
 
             x1, y1, x2, y2 = list(map(int, box))
 
-            cropped = cv2.resize(annotated_frame[y1:y2, x1:x2], (500, 1000))
+            cropped = cv2.resize(annotated_frame[y1:y2, x1:x2], (250, 500))
 
-            cropped = cropped.astype("float32")
+            cropped = cropped.astype("uint8") # "float32")
 
             print(cropped.shape)
 
@@ -61,11 +63,22 @@ while cap.isOpened():
 
             print(cropped.shape)
 
-            uniform = np.argmax(softmax_layer(uniformModel.predict(cropped))[0])
+            predictions = probability_model.predict(cropped) # , batch_size=1)
+
+            uniform = np.argmax(predictions)
+
+            prob_text = f"Uniform: {predictions[0][1]*100:.2f} | Non-niform: {predictions[0][0]*100:.2f}%%"
+
+            # Choose the text position (just above the top-left corner of the box)
+            text_position = (x1, y1 - 10)
+            # print(text_position)
+
+            cv2.putText(annotated_frame, prob_text, text_position, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
+
+            print(predictions)
 
             box = list(map(int, box))
-
-            print(softmax_layer(uniformModel.predict(cropped))[0])
 
             if uniform == 1: 
                 cv2.rectangle(annotated_frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 5)
